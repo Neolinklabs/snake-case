@@ -32,6 +32,10 @@
   color: #888;
 }
 
+.level {
+  color: #0af;
+}
+
 .pause-btn {
   margin-top: 8px;
   padding: 8px 24px;

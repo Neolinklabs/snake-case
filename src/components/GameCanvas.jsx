@@ -101,13 +101,14 @@ function isSelfCollision(head, body) {
   return body.some((s) => s.x === head.x && s.y === head.y)
 }
 
-function GameCanvas({ onScore, onGameOver, gameOver, paused }) {
+function GameCanvas({ onScore, onGameOver, onLevelUp, gameOver, paused, speed }) {
   const canvasRef = useRef(null)
   const snakeRef = useRef(INITIAL_SNAKE)
   const foodRef = useRef(spawnFood(INITIAL_SNAKE))
   const directionRef = useRef(DIRECTIONS.RIGHT)
   const flashRef = useRef(false)
   const scoreRef = useRef(0)
+  const eatenRef = useRef(0)
 
   const handleKeyDown = useCallback((e) => {
     if (gameOver) return
@@ -154,7 +155,9 @@ function GameCanvas({ onScore, onGameOver, gameOver, paused }) {
 
     if (ate) {
       scoreRef.current += 10
+      eatenRef.current += 1
       onScore(scoreRef.current)
+      if (eatenRef.current % 5 === 0) onLevelUp()
       foodRef.current = spawnFood(newSnake)
       flashRef.current = true
       setTimeout(() => {
@@ -164,9 +167,9 @@ function GameCanvas({ onScore, onGameOver, gameOver, paused }) {
     }
 
     if (canvasRef.current) render(canvasRef.current, newSnake, foodRef.current, flashRef.current)
-  }, [onScore, onGameOver, gameOver, paused])
+  }, [onScore, onGameOver, onLevelUp, gameOver, paused])
 
-  useGameLoop(tick, paused || gameOver)
+  useGameLoop(tick, paused || gameOver, speed)
 
   useEffect(() => {
     if (!canvasRef.current) return

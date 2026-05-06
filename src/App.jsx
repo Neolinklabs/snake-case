@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import GameCanvas from './components/GameCanvas'
+import { INITIAL_SPEED, SPEED_INCREMENT, FOODS_PER_LEVEL } from './utils/constants'
 import './App.css'
 
 function getHighScore() {
@@ -12,6 +13,10 @@ function App() {
   const [scoreBump, setScoreBump] = useState(false)
   const [gameOver, setGameOver] = useState(false)
   const [paused, setPaused] = useState(false)
+  const [level, setLevel] = useState(1)
+  const levelRef = useRef(1)
+
+  const speed = Math.max(50, INITIAL_SPEED - (level - 1) * SPEED_INCREMENT)
 
   useEffect(() => {
     if (score > highScore) {
@@ -37,9 +42,10 @@ function App() {
     setTimeout(() => setScoreBump(false), 200)
   }
 
-  const handleGameOver = () => {
-    setGameOver(true)
-    setPaused(false)
+  const handleLevelUp = () => {
+    const newLevel = levelRef.current + 1
+    levelRef.current = newLevel
+    setLevel(newLevel)
   }
 
   return (
@@ -52,8 +58,18 @@ function App() {
         <div className="high-score">
           最高分: {highScore}
         </div>
+        <div className="level">
+          等级: {level}
+        </div>
       </div>
-      <GameCanvas onScore={handleScore} onGameOver={handleGameOver} gameOver={gameOver} paused={paused} />
+      <GameCanvas
+        onScore={handleScore}
+        onGameOver={() => { setGameOver(true); setPaused(false) }}
+        onLevelUp={handleLevelUp}
+        gameOver={gameOver}
+        paused={paused}
+        speed={speed}
+      />
       {!gameOver && (
         <button className="pause-btn" onClick={() => setPaused((p) => !p)}>
           {paused ? '继续' : '暂停'}
