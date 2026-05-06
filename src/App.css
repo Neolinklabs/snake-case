@@ -4,28 +4,40 @@
   align-items: center;
   gap: 16px;
   padding: 24px;
+  max-width: 480px;
+  width: 100%;
 }
 
 .app h1 {
-  font-size: 28px;
-  letter-spacing: 2px;
-  color: #0f0;
+  font-size: 32px;
+  letter-spacing: 4px;
+  color: var(--accent);
+  text-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+  text-transform: uppercase;
 }
 
 .score-panel {
   display: flex;
-  gap: 32px;
-  font-size: 18px;
+  gap: 24px;
+  font-size: 16px;
+  background: var(--card-bg);
+  padding: 8px 20px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  width: 100%;
+  justify-content: center;
 }
 
 .score {
-  color: #0f0;
+  color: var(--accent);
+  font-weight: bold;
   transition: transform 0.2s;
 }
 
 .score.bump {
   transform: scale(1.3);
   color: #fff;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
 }
 
 .high-score {
@@ -34,17 +46,27 @@
 
 .level {
   color: #0af;
+  font-weight: bold;
+}
+
+canvas {
+  border: 2px solid var(--border) !important;
+  border-radius: 4px;
+  box-shadow: 0 0 20px rgba(0, 255, 0, 0.1);
+  max-width: 100%;
+  height: auto;
 }
 
 .pause-btn {
   margin-top: 8px;
-  padding: 8px 24px;
+  padding: 8px 28px;
   font-size: 16px;
-  background: #333;
+  background: var(--card-bg);
   color: #ff0;
   border: 1px solid #555;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
+  transition: background 0.2s;
 }
 
 .pause-btn:hover {
@@ -53,57 +75,101 @@
 
 .game-over-overlay {
   margin-top: 12px;
-  font-size: 20px;
-  color: #f00;
-  font-weight: bold;
   text-align: center;
 }
 
+.game-over-overlay p {
+  font-size: 20px;
+  color: #f00;
+  font-weight: bold;
+  margin-bottom: 12px;
+  text-shadow: 0 0 8px rgba(255, 0, 0, 0.3);
+}
+
 .restart-btn {
-  margin-top: 12px;
-  padding: 10px 32px;
+  padding: 12px 36px;
   font-size: 18px;
-  background: #0f0;
+  background: var(--accent);
   color: #000;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
   font-weight: bold;
+  transition: background 0.2s, transform 0.1s;
 }
 
 .restart-btn:hover {
-  background: #0c0;
+  background: var(--accent-dim);
+}
+
+.restart-btn:active {
+  transform: scale(0.95);
 }
 
 .dpad {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  margin-top: 12px;
+  gap: 6px;
+  margin-top: 16px;
 }
 
 .dpad-row {
   display: flex;
-  gap: 40px;
+  gap: 44px;
 }
 
 .dpad-btn {
-  width: 50px;
-  height: 50px;
-  font-size: 20px;
-  background: #333;
+  width: 52px;
+  height: 52px;
+  font-size: 22px;
+  background: var(--card-bg);
   color: #fff;
-  border: 1px solid #555;
-  border-radius: 8px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
+  transition: background 0.15s;
 }
 
 .dpad-btn:active {
   background: #555;
+  transform: scale(0.9);
+}
+
+@media (max-width: 440px) {
+  .app {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .app h1 {
+    font-size: 24px;
+  }
+
+  .score-panel {
+    gap: 16px;
+    font-size: 14px;
+    padding: 6px 12px;
+  }
+
+  .dpad-btn {
+    width: 48px;
+    height: 48px;
+    font-size: 20px;
+  }
+
+  .dpad-row {
+    gap: 36px;
+  }
+}
+
+@media (min-width: 768px) {
+  .dpad {
+    display: none;
+  }
 }
