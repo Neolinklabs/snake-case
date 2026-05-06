@@ -70,12 +70,13 @@ function render(canvas, snake, food, flash) {
   drawSnake(ctx, snake, flash)
 }
 
-function GameCanvas() {
+function GameCanvas({ onScore }) {
   const canvasRef = useRef(null)
   const snakeRef = useRef(INITIAL_SNAKE)
   const foodRef = useRef(spawnFood(INITIAL_SNAKE))
   const directionRef = useRef(DIRECTIONS.RIGHT)
   const flashRef = useRef(false)
+  const scoreRef = useRef(0)
 
   const handleKeyDown = useCallback((e) => {
     const keyMap = {
@@ -112,6 +113,8 @@ function GameCanvas() {
     snakeRef.current = newSnake
 
     if (ate) {
+      scoreRef.current += 10
+      onScore(scoreRef.current)
       foodRef.current = spawnFood(newSnake)
       flashRef.current = true
       setTimeout(() => {
@@ -121,7 +124,7 @@ function GameCanvas() {
     }
 
     if (canvasRef.current) render(canvasRef.current, newSnake, foodRef.current, flashRef.current)
-  }, [])
+  }, [onScore])
 
   useGameLoop(tick)
 
