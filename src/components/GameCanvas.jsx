@@ -52,6 +52,15 @@ function drawFood(ctx, food) {
   ctx.fill()
 }
 
+function drawGameOver(ctx) {
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.7)'
+  ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
+  ctx.fillStyle = '#f00'
+  ctx.font = 'bold 36px system-ui'
+  ctx.textAlign = 'center'
+  ctx.fillText('GAME OVER', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2)
+}
+
 function spawnFood(snake) {
   let pos
   do {
@@ -70,7 +79,20 @@ function render(canvas, snake, food, flash) {
   drawSnake(ctx, snake, flash)
 }
 
-function GameCanvas({ onScore }) {
+function renderGameOver(canvas) {
+  const ctx = canvas.getContext('2d')
+  drawGameOver(ctx)
+}
+
+function isWallCollision(head) {
+  return head.x < 0 || head.x >= GRID_SIZE || head.y < 0 || head.y >= GRID_SIZE
+}
+
+function isSelfCollision(head, body) {
+  return body.some((s) => s.x === head.x && s.y === head.y)
+}
+
+function GameCanvas({ onScore, onGameOver, gameOver }) {
   const canvasRef = useRef(null)
   const snakeRef = useRef(INITIAL_SNAKE)
   const foodRef = useRef(spawnFood(INITIAL_SNAKE))
@@ -79,6 +101,7 @@ function GameCanvas({ onScore }) {
   const scoreRef = useRef(0)
 
   const handleKeyDown = useCallback((e) => {
+    if (gameOver) return
     const keyMap = {
       ArrowUp: DIRECTIONS.UP,
       ArrowDown: DIRECTIONS.DOWN,
@@ -91,7 +114,7 @@ function GameCanvas({ onScore }) {
     if (newDir.x + current.x === 0 && newDir.y + current.y === 0) return
     directionRef.current = newDir
     e.preventDefault()
-  }, [])
+  }, [gameOver])
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown)
@@ -99,11 +122,19 @@ function GameCanvas({ onScore }) {
   }, [handleKeyDown])
 
   const tick = useCallback(() => {
+    if (gameOver) return
     const snake = snakeRef.current
     const food = foodRef.current
     const head = snake[0]
     const dir = directionRef.current
     const newHead = { x: head.x + dir.x, y: head.y + dir.y }
+
+    // 碰撞检测
+    if (isWallCollision(newHead) || isSelfCollision(newHead, snake)) {
+      onGameOver(scoreRef.current)
+      if (canvasRef.current) renderGameOver(canvasRef.current)
+      return
+    }
 
     const ate = newHead.x === food.x && newHead.y === food.y
     const newSnake = ate
@@ -124,13 +155,17 @@ function GameCanvas({ onScore }) {
     }
 
     if (canvasRef.current) render(canvasRef.current, newSnake, foodRef.current, flashRef.current)
-  }, [onScore])
+  }, [onScore, onGameOver, gameOver])
 
   useGameLoop(tick)
 
   useEffect(() => {
-    if (canvasRef.current) render(canvasRef.current, INITIAL_SNAKE, foodRef.current, false)
-  }, [])
+    if (gameOver && canvasRef.current) {
+      renderGameOver(canvasRef.current)
+    } else if (canvasRef.current) {
+      render(canvasRef.current, INITIAL_SNAKE, foodRef.current, false)
+    }
+  }, [gameOver])
 
   return (
     <canvas

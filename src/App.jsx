@@ -10,6 +10,7 @@ function App() {
   const [score, setScore] = useState(0)
   const [highScore, setHighScore] = useState(getHighScore)
   const [scoreBump, setScoreBump] = useState(false)
+  const [gameOver, setGameOver] = useState(false)
 
   useEffect(() => {
     if (score > highScore) {
@@ -24,6 +25,10 @@ function App() {
     setTimeout(() => setScoreBump(false), 200)
   }
 
+  const handleGameOver = () => {
+    setGameOver(true)
+  }
+
   return (
     <div className="app">
       <h1>贪吃蛇</h1>
@@ -35,7 +40,12 @@ function App() {
           最高分: {highScore}
         </div>
       </div>
-      <GameCanvas onScore={handleScore} />
+      <GameCanvas onScore={handleScore} onGameOver={handleGameOver} gameOver={gameOver} />
+      {gameOver && (
+        <div className="game-over-overlay">
+          <p>游戏结束！最终得分: {score}</p>
+        </div>
+      )}
     </div>
   )
 }

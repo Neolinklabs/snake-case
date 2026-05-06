@@ -31,3 +31,10 @@
 .high-score {
   color: #888;
 }
+
+.game-over-overlay {
+  margin-top: 12px;
+  font-size: 20px;
+  color: #f00;
+  font-weight: bold;
+}
