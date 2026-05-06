@@ -26,14 +26,14 @@ function drawGrid(ctx) {
   }
 }
 
-function drawSnake(ctx, snake) {
+function drawSnake(ctx, snake, flash) {
   snake.forEach((segment, index) => {
     const x = segment.x * CELL_SIZE
     const y = segment.y * CELL_SIZE
     ctx.fillStyle = index === 0 ? COLORS.snakeHead : COLORS.snakeBody
     ctx.fillRect(x, y, CELL_SIZE, CELL_SIZE)
     if (index === 0) {
-      ctx.fillStyle = '#0f0'
+      ctx.fillStyle = flash ? '#fff' : '#0f0'
       ctx.beginPath()
       ctx.arc(x + CELL_SIZE / 2, y + CELL_SIZE / 2, CELL_SIZE / 3, 0, Math.PI * 2)
       ctx.fill()
@@ -46,7 +46,6 @@ function drawFood(ctx, food) {
   const y = food.y * CELL_SIZE
   ctx.fillStyle = COLORS.food
   ctx.fillRect(x, y, CELL_SIZE, CELL_SIZE)
-  // 内部圆形高光
   ctx.fillStyle = '#ff4444'
   ctx.beginPath()
   ctx.arc(x + CELL_SIZE / 2, y + CELL_SIZE / 2, CELL_SIZE / 3, 0, Math.PI * 2)
@@ -64,18 +63,19 @@ function spawnFood(snake) {
   return pos
 }
 
-function render(canvas, snake, food) {
+function render(canvas, snake, food, flash) {
   const ctx = canvas.getContext('2d')
   drawGrid(ctx)
   drawFood(ctx, food)
-  drawSnake(ctx, snake)
+  drawSnake(ctx, snake, flash)
 }
 
 function GameCanvas() {
   const canvasRef = useRef(null)
-  const [snake, setSnake] = useState(INITIAL_SNAKE)
-  const [food, setFood] = useState(() => spawnFood(INITIAL_SNAKE))
+  const snakeRef = useRef(INITIAL_SNAKE)
+  const foodRef = useRef(spawnFood(INITIAL_SNAKE))
   const directionRef = useRef(DIRECTIONS.RIGHT)
+  const flashRef = useRef(false)
 
   const handleKeyDown = useCallback((e) => {
     const keyMap = {
@@ -86,7 +86,6 @@ function GameCanvas() {
     }
     const newDir = keyMap[e.key]
     if (!newDir) return
-    // 不允许反向移动
     const current = directionRef.current
     if (newDir.x + current.x === 0 && newDir.y + current.y === 0) return
     directionRef.current = newDir
@@ -99,21 +98,35 @@ function GameCanvas() {
   }, [handleKeyDown])
 
   const tick = useCallback(() => {
-    setSnake((prev) => {
-      const head = prev[0]
-      const dir = directionRef.current
-      const newHead = { x: head.x + dir.x, y: head.y + dir.y }
-      const newSnake = [newHead, ...prev.slice(0, -1)]
-      // 渲染
-      if (canvasRef.current) render(canvasRef.current, newSnake, food)
-      return newSnake
-    })
+    const snake = snakeRef.current
+    const food = foodRef.current
+    const head = snake[0]
+    const dir = directionRef.current
+    const newHead = { x: head.x + dir.x, y: head.y + dir.y }
+
+    const ate = newHead.x === food.x && newHead.y === food.y
+    const newSnake = ate
+      ? [newHead, ...snake]
+      : [newHead, ...snake.slice(0, -1)]
+
+    snakeRef.current = newSnake
+
+    if (ate) {
+      foodRef.current = spawnFood(newSnake)
+      flashRef.current = true
+      setTimeout(() => {
+        flashRef.current = false
+        if (canvasRef.current) render(canvasRef.current, snakeRef.current, foodRef.current, false)
+      }, 100)
+    }
+
+    if (canvasRef.current) render(canvasRef.current, newSnake, foodRef.current, flashRef.current)
   }, [])
 
   useGameLoop(tick)
 
   useEffect(() => {
-    if (canvasRef.current) render(canvasRef.current, snake, food)
+    if (canvasRef.current) render(canvasRef.current, INITIAL_SNAKE, foodRef.current, false)
   }, [])
 
   return (
