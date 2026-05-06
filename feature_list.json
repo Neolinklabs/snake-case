@@ -1,0 +1,84 @@
+{
+  "project": "贪吃蛇游戏",
+  "tech_stack": "React 18 + Vite + Canvas API + 纯 CSS",
+  "features": [
+    {
+      "id": "F001",
+      "priority": 1,
+      "description": "项目脚手架：使用 Vite 创建 React 项目，配置基础目录结构（components、hooks、utils），确保 dev server 可启动",
+      "passes": false
+    },
+    {
+      "id": "F002",
+      "priority": 2,
+      "description": "游戏画布：创建 GameCanvas 组件，使用 Canvas API 绘制固定大小的游戏区域（400x400），带网格背景",
+      "passes": false
+    },
+    {
+      "id": "F003",
+      "priority": 3,
+      "description": "蛇的渲染：在 Canvas 上绘制蛇身（20x20 像素格子），蛇头使用不同颜色/形状区分，蛇身连续无间隙",
+      "passes": false
+    },
+    {
+      "id": "F004",
+      "priority": 4,
+      "description": "蛇的移动：使用方向键控制蛇的移动方向，蛇按当前方向自动前进，每次移动一格（useGameLoop 自定义 Hook 管理游戏循环）",
+      "passes": false
+    },
+    {
+      "id": "F005",
+      "priority": 5,
+      "description": "食物生成与渲染：在游戏区域内随机生成食物（不与蛇身重叠），食物使用醒目颜色绘制",
+      "passes": false
+    },
+    {
+      "id": "F006",
+      "priority": 6,
+      "description": "碰撞检测与食物吃掉：蛇头碰到食物时蛇身增长一节、生成新食物、播放吃食物的视觉反馈",
+      "passes": false
+    },
+    {
+      "id": "F007",
+      "priority": 7,
+      "description": "计分系统：吃一个食物加 10 分，页面显示当前分数和最高分（localStorage 持久化），分数变化时有动画效果",
+      "passes": false
+    },
+    {
+      "id": "F008",
+      "priority": 8,
+      "description": "游戏结束判定：蛇撞墙或撞自身时游戏结束，显示 Game Over 画面和最终得分",
+      "passes": false
+    },
+    {
+      "id": "F009",
+      "priority": 9,
+      "description": "暂停与恢复：按空格键或点击暂停按钮切换暂停状态，暂停时画面显示'已暂停'提示且蛇停止移动",
+      "passes": false
+    },
+    {
+      "id": "F010",
+      "priority": 10,
+      "description": "难度递增：每吃 5 个食物提升一个难度等级（加快蛇的移动速度），显示当前难度等级，速度变化平滑过渡",
+      "passes": false
+    },
+    {
+      "id": "F011",
+      "priority": 11,
+      "description": "重新开始：Game Over 画面提供'重新开始'按钮，点击后重置蛇位置、分数、速度，保留最高分记录",
+      "passes": false
+    },
+    {
+      "id": "F012",
+      "priority": 12,
+      "description": "移动端触屏支持：添加虚拟方向键按钮，支持触屏操作，按钮样式适配移动端",
+      "passes": false
+    },
+    {
+      "id": "F013",
+      "priority": 13,
+      "description": "UI 美化与响应式布局：整体页面居中、标题样式、分数面板、按钮样式优化，适配不同屏幕尺寸",
+      "passes": false
+    }
+  ]
+}
