@@ -11,6 +11,7 @@ function App() {
   const [highScore, setHighScore] = useState(getHighScore)
   const [scoreBump, setScoreBump] = useState(false)
   const [gameOver, setGameOver] = useState(false)
+  const [paused, setPaused] = useState(false)
 
   useEffect(() => {
     if (score > highScore) {
@@ -18,6 +19,17 @@ function App() {
       localStorage.setItem('snakeHighScore', String(score))
     }
   }, [score, highScore])
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.code === 'Space' && !gameOver) {
+        e.preventDefault()
+        setPaused((p) => !p)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [gameOver])
 
   const handleScore = (newScore) => {
     setScore(newScore)
@@ -27,6 +39,7 @@ function App() {
 
   const handleGameOver = () => {
     setGameOver(true)
+    setPaused(false)
   }
 
   return (
@@ -40,7 +53,12 @@ function App() {
           最高分: {highScore}
         </div>
       </div>
-      <GameCanvas onScore={handleScore} onGameOver={handleGameOver} gameOver={gameOver} />
+      <GameCanvas onScore={handleScore} onGameOver={handleGameOver} gameOver={gameOver} paused={paused} />
+      {!gameOver && (
+        <button className="pause-btn" onClick={() => setPaused((p) => !p)}>
+          {paused ? '继续' : '暂停'}
+        </button>
+      )}
       {gameOver && (
         <div className="game-over-overlay">
           <p>游戏结束！最终得分: {score}</p>

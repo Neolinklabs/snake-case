@@ -61,6 +61,15 @@ function drawGameOver(ctx) {
   ctx.fillText('GAME OVER', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2)
 }
 
+function drawPaused(ctx) {
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.5)'
+  ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
+  ctx.fillStyle = '#ff0'
+  ctx.font = 'bold 30px system-ui'
+  ctx.textAlign = 'center'
+  ctx.fillText('已暂停', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2)
+}
+
 function spawnFood(snake) {
   let pos
   do {
@@ -92,7 +101,7 @@ function isSelfCollision(head, body) {
   return body.some((s) => s.x === head.x && s.y === head.y)
 }
 
-function GameCanvas({ onScore, onGameOver, gameOver }) {
+function GameCanvas({ onScore, onGameOver, gameOver, paused }) {
   const canvasRef = useRef(null)
   const snakeRef = useRef(INITIAL_SNAKE)
   const foodRef = useRef(spawnFood(INITIAL_SNAKE))
@@ -122,7 +131,7 @@ function GameCanvas({ onScore, onGameOver, gameOver }) {
   }, [handleKeyDown])
 
   const tick = useCallback(() => {
-    if (gameOver) return
+    if (gameOver || paused) return
     const snake = snakeRef.current
     const food = foodRef.current
     const head = snake[0]
@@ -155,17 +164,21 @@ function GameCanvas({ onScore, onGameOver, gameOver }) {
     }
 
     if (canvasRef.current) render(canvasRef.current, newSnake, foodRef.current, flashRef.current)
-  }, [onScore, onGameOver, gameOver])
+  }, [onScore, onGameOver, gameOver, paused])
 
-  useGameLoop(tick)
+  useGameLoop(tick, paused || gameOver)
 
   useEffect(() => {
-    if (gameOver && canvasRef.current) {
+    if (!canvasRef.current) return
+    if (gameOver) {
       renderGameOver(canvasRef.current)
-    } else if (canvasRef.current) {
-      render(canvasRef.current, INITIAL_SNAKE, foodRef.current, false)
+    } else if (paused) {
+      render(canvasRef.current, snakeRef.current, foodRef.current, false)
+      drawPaused(canvasRef.current.getContext('2d'))
+    } else {
+      render(canvasRef.current, snakeRef.current, foodRef.current, false)
     }
-  }, [gameOver])
+  }, [gameOver, paused])
 
   return (
     <canvas
