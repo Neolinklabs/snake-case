@@ -41,15 +41,40 @@ function drawSnake(ctx, snake) {
   })
 }
 
-function render(canvas, snake) {
+function drawFood(ctx, food) {
+  const x = food.x * CELL_SIZE
+  const y = food.y * CELL_SIZE
+  ctx.fillStyle = COLORS.food
+  ctx.fillRect(x, y, CELL_SIZE, CELL_SIZE)
+  // 内部圆形高光
+  ctx.fillStyle = '#ff4444'
+  ctx.beginPath()
+  ctx.arc(x + CELL_SIZE / 2, y + CELL_SIZE / 2, CELL_SIZE / 3, 0, Math.PI * 2)
+  ctx.fill()
+}
+
+function spawnFood(snake) {
+  let pos
+  do {
+    pos = {
+      x: Math.floor(Math.random() * GRID_SIZE),
+      y: Math.floor(Math.random() * GRID_SIZE),
+    }
+  } while (snake.some((s) => s.x === pos.x && s.y === pos.y))
+  return pos
+}
+
+function render(canvas, snake, food) {
   const ctx = canvas.getContext('2d')
   drawGrid(ctx)
+  drawFood(ctx, food)
   drawSnake(ctx, snake)
 }
 
 function GameCanvas() {
   const canvasRef = useRef(null)
   const [snake, setSnake] = useState(INITIAL_SNAKE)
+  const [food, setFood] = useState(() => spawnFood(INITIAL_SNAKE))
   const directionRef = useRef(DIRECTIONS.RIGHT)
 
   const handleKeyDown = useCallback((e) => {
@@ -80,7 +105,7 @@ function GameCanvas() {
       const newHead = { x: head.x + dir.x, y: head.y + dir.y }
       const newSnake = [newHead, ...prev.slice(0, -1)]
       // 渲染
-      if (canvasRef.current) render(canvasRef.current, newSnake)
+      if (canvasRef.current) render(canvasRef.current, newSnake, food)
       return newSnake
     })
   }, [])
@@ -88,7 +113,7 @@ function GameCanvas() {
   useGameLoop(tick)
 
   useEffect(() => {
-    if (canvasRef.current) render(canvasRef.current, snake)
+    if (canvasRef.current) render(canvasRef.current, snake, food)
   }, [])
 
   return (
