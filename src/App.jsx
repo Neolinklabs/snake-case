@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import GameCanvas from './components/GameCanvas'
-import { INITIAL_SPEED, SPEED_INCREMENT, FOODS_PER_LEVEL } from './utils/constants'
+import { INITIAL_SPEED, SPEED_INCREMENT } from './utils/constants'
 import './App.css'
 
 function getHighScore() {
@@ -14,6 +14,7 @@ function App() {
   const [gameOver, setGameOver] = useState(false)
   const [paused, setPaused] = useState(false)
   const [level, setLevel] = useState(1)
+  const [resetKey, setResetKey] = useState(0)
   const levelRef = useRef(1)
 
   const speed = Math.max(50, INITIAL_SPEED - (level - 1) * SPEED_INCREMENT)
@@ -48,6 +49,15 @@ function App() {
     setLevel(newLevel)
   }
 
+  const handleRestart = () => {
+    setScore(0)
+    setGameOver(false)
+    setPaused(false)
+    setLevel(1)
+    levelRef.current = 1
+    setResetKey((k) => k + 1)
+  }
+
   return (
     <div className="app">
       <h1>贪吃蛇</h1>
@@ -69,6 +79,7 @@ function App() {
         gameOver={gameOver}
         paused={paused}
         speed={speed}
+        resetKey={resetKey}
       />
       {!gameOver && (
         <button className="pause-btn" onClick={() => setPaused((p) => !p)}>
@@ -78,6 +89,9 @@ function App() {
       {gameOver && (
         <div className="game-over-overlay">
           <p>游戏结束！最终得分: {score}</p>
+          <button className="restart-btn" onClick={handleRestart}>
+            重新开始
+          </button>
         </div>
       )}
     </div>
