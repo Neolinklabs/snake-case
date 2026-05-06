@@ -1,0 +1,4 @@
+node_modules/
+dist/
+.agent-state/session_log/
+.DS_Store
