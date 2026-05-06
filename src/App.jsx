@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import GameCanvas from './components/GameCanvas'
-import { INITIAL_SPEED, SPEED_INCREMENT } from './utils/constants'
+import { INITIAL_SPEED, SPEED_INCREMENT, DIRECTIONS } from './utils/constants'
 import './App.css'
 
 function getHighScore() {
@@ -16,6 +16,7 @@ function App() {
   const [level, setLevel] = useState(1)
   const [resetKey, setResetKey] = useState(0)
   const levelRef = useRef(1)
+  const changeDirRef = useRef(null)
 
   const speed = Math.max(50, INITIAL_SPEED - (level - 1) * SPEED_INCREMENT)
 
@@ -58,6 +59,14 @@ function App() {
     setResetKey((k) => k + 1)
   }
 
+  const handleDirectionReady = useCallback((fn) => {
+    changeDirRef.current = fn
+  }, [])
+
+  const handleDir = (dir) => {
+    if (changeDirRef.current) changeDirRef.current(dir)
+  }
+
   return (
     <div className="app">
       <h1>贪吃蛇</h1>
@@ -80,6 +89,7 @@ function App() {
         paused={paused}
         speed={speed}
         resetKey={resetKey}
+        onDirectionReady={handleDirectionReady}
       />
       {!gameOver && (
         <button className="pause-btn" onClick={() => setPaused((p) => !p)}>
@@ -94,6 +104,14 @@ function App() {
           </button>
         </div>
       )}
+      <div className="dpad">
+        <button className="dpad-btn dpad-up" onTouchStart={(e) => { e.preventDefault(); handleDir(DIRECTIONS.UP) }} onClick={() => handleDir(DIRECTIONS.UP)}>&#9650;</button>
+        <div className="dpad-row">
+          <button className="dpad-btn" onTouchStart={(e) => { e.preventDefault(); handleDir(DIRECTIONS.LEFT) }} onClick={() => handleDir(DIRECTIONS.LEFT)}>&#9664;</button>
+          <button className="dpad-btn" onTouchStart={(e) => { e.preventDefault(); handleDir(DIRECTIONS.RIGHT) }} onClick={() => handleDir(DIRECTIONS.RIGHT)}>&#9654;</button>
+        </div>
+        <button className="dpad-btn dpad-down" onTouchStart={(e) => { e.preventDefault(); handleDir(DIRECTIONS.DOWN) }} onClick={() => handleDir(DIRECTIONS.DOWN)}>&#9660;</button>
+      </div>
     </div>
   )
 }

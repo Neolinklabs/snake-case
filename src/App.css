@@ -74,3 +74,36 @@
 .restart-btn:hover {
   background: #0c0;
 }
+
+.dpad {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin-top: 12px;
+}
+
+.dpad-row {
+  display: flex;
+  gap: 40px;
+}
+
+.dpad-btn {
+  width: 50px;
+  height: 50px;
+  font-size: 20px;
+  background: #333;
+  color: #fff;
+  border: 1px solid #555;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.dpad-btn:active {
+  background: #555;
+}
