@@ -1,0 +1,64 @@
+name: Bug 报告
+description: 报告一个 Bug，Claude Agent 会自动处理
+labels: ["bug", "claude-pending"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: 问题描述
+      description: 简要描述你遇到的 Bug
+      placeholder: "例如：游戏暂停后按空格无法恢复"
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤
+      description: 你是怎么触发这个 Bug 的？
+      placeholder: |
+        1. 启动游戏
+        2. 按空格键暂停
+        3. 再按空格键
+      value: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期望行为
+      description: 你期望发生什么？
+      placeholder: "例如：游戏应该恢复运行"
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: 实际行为
+      description: 实际发生了什么？
+      placeholder: "例如：游戏保持暂停状态，无法恢复"
+    validations:
+      required: true
+
+  - type: textarea
+    id: files
+    attributes:
+      label: 相关文件（可选）
+      description: 你认为哪些文件可能与这个 Bug 相关？
+      placeholder: "例如：src/hooks/useGameLoop.js"
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: 补充信息
+      description: 截图、控制台错误信息等
+    validations:
+      required: false
+

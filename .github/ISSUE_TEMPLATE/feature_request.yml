@@ -1,0 +1,58 @@
+name: 功能请求
+description: 请求一个新功能，Claude Agent 会自动实现
+labels: ["feature", "claude-pending"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: 功能描述
+      description: 你希望添加什么功能？
+      placeholder: "例如：游戏结束后显示历史最高分"
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: 验收标准
+      description: 怎样算"做完了"？列出可验证的条件
+      placeholder: |
+        - 游戏结束时显示当前分数和历史最高分
+        - 最高分保存在 localStorage
+        - 刷新页面后最高分仍然保留
+      value: |
+        -
+        -
+    validations:
+      required: true
+
+  - type: textarea
+    id: implementation
+    attributes:
+      label: 实现思路（可选）
+      description: 你觉得应该怎么实现？给 Agent 一些提示
+      placeholder: "例如：在 src/components/GameOverModal.jsx 中添加分数展示"
+    validations:
+      required: false
+
+  - type: textarea
+    id: files
+    attributes:
+      label: 涉及文件（可选）
+      description: 你认为需要修改哪些文件？
+      placeholder: "例如：src/components/GameOverModal.jsx, src/hooks/useScore.js"
+    validations:
+      required: false
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: 优先级
+      description: 你认为这个功能有多重要？
+      options:
+        - P2 - 正常
+        - P1 - 重要
+        - P3 - 低优先级
+      default: 0
+    validations:
+      required: true

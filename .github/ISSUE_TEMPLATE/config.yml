@@ -1,0 +1,5 @@
+blank_issue_enabled: false
+contact_links:
+  - name: 💬 讨论
+    url: https://github.com/YOUR_USERNAME/snake-game/discussions
+    about: 一般性讨论请使用 Discussions
