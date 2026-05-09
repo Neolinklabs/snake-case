@@ -6,6 +6,19 @@ set -euo pipefail
 # 发现 claude-pending 的 Issue 后调用 processor.sh 处理
 # =============================================
 
+# 倒计时函数：逐秒显示剩余时间
+countdown() {
+    local remaining=$1
+    while [ "$remaining" -gt 0 ]; do
+        local mins=$((remaining / 60))
+        local secs=$((remaining % 60))
+        printf "\r⏳ 下次轮询: %02d:%02d " "$mins" "$secs"
+        sleep 1
+        remaining=$((remaining - 1))
+    done
+    echo ""
+}
+
 REPO_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 LOG_DIR="${REPO_DIR}/.agent-state/automation-log"
 MAX_CONCURRENT=${MAX_CONCURRENT:-1}
@@ -40,7 +53,7 @@ print(len(issues))
 
     if [ "$COUNT" -eq 0 ]; then
         echo "[${TIMESTAMP}] 无待处理 Issue，${POLL_INTERVAL}s 后重试"
-        sleep "$POLL_INTERVAL"
+        countdown "$POLL_INTERVAL"
         continue
     fi
 
@@ -71,5 +84,5 @@ for i in issues:
         fi
     done
 
-    sleep "$POLL_INTERVAL"
+    countdown "$POLL_INTERVAL"
 done

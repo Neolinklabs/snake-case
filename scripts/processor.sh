@@ -22,8 +22,17 @@ ISSUE_TITLE=$(echo "$ISSUE_DATA" | python3 -c "import sys,json; print(json.load(
 ISSUE_BODY=$(echo "$ISSUE_DATA" | python3 -c "import sys,json; print(json.load(sys.stdin)['body'])")
 ISSUE_TYPE=$(echo "$ISSUE_DATA" | python3 -c "
 import sys, json
-labels = [l['name'] for l in json.load(sys.stdin)['labels']]
-print('bug' if 'bug' in labels else 'feature')
+data = json.load(sys.stdin)
+labels = [l['name'] for l in data['labels']]
+title_lower = data['title'].lower()
+if 'bug' in labels:
+    print('bug')
+elif 'feature' in labels or 'enhancement' in labels:
+    print('feature')
+elif any(w in title_lower for w in ['bug', '修复', '错误', '异常', '崩溃', '闪退', 'fix']):
+    print('bug')
+else:
+    print('feature')
 ")
 
 echo "标题: ${ISSUE_TITLE}"
@@ -35,9 +44,12 @@ if [ "$ISSUE_TYPE" = "feature" ]; then
     BRANCH_PREFIX="feat"
 fi
 
-# 从 Issue 标题生成简短描述
+# 从 Issue 标题生成简短描述（中文标题可能生成空 slug，用 issue 编号兜底）
 SLUG=$(echo "$ISSUE_TITLE" | tr '[:upper:]' '[:lower:]' \
     | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | cut -c1-40 | sed 's/-$//')
+if [ -z "$SLUG" ]; then
+    SLUG="issue-${ISSUE_NUM}"
+fi
 BRANCH_NAME="${BRANCH_PREFIX}/issue-${ISSUE_NUM}-${SLUG}"
 
 echo "分支: ${BRANCH_NAME}"
