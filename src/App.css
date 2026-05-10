@@ -64,6 +64,21 @@
   background: #444;
 }
 
+.leaderboard-btn {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 14px;
+  padding: 6px 14px;
+  cursor: pointer;
+  color: var(--text);
+  transition: background 0.2s;
+}
+
+.leaderboard-btn:hover {
+  background: #444;
+}
+
 canvas {
   border: 2px solid var(--border) !important;
   border-radius: 4px;
@@ -187,4 +202,123 @@ canvas {
   .dpad {
     display: none;
   }
+}
+
+.name-input-area {
+  margin-bottom: 12px;
+}
+
+.congrats-text {
+  color: #ff0 !important;
+  font-size: 16px !important;
+  margin-bottom: 8px !important;
+}
+
+.name-input-row {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.name-input {
+  padding: 6px 12px;
+  font-size: 16px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--card-bg);
+  color: var(--text);
+  outline: none;
+  width: 160px;
+}
+
+.name-input:focus {
+  border-color: var(--accent);
+}
+
+.submit-name-btn {
+  padding: 6px 16px;
+  font-size: 16px;
+  background: var(--accent);
+  color: #000;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.submit-name-btn:hover {
+  background: var(--accent-dim);
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+}
+
+.modal-content {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  min-width: 320px;
+  max-width: 90vw;
+  text-align: center;
+}
+
+.modal-content h2 {
+  margin-bottom: 16px;
+  color: var(--accent);
+  font-size: 20px;
+}
+
+.empty-board {
+  color: #888;
+  margin: 16px 0;
+}
+
+.leaderboard-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 16px;
+}
+
+.leaderboard-table th,
+.leaderboard-table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border);
+  text-align: center;
+}
+
+.leaderboard-table th {
+  color: var(--accent);
+  font-size: 13px;
+}
+
+.leaderboard-table td {
+  font-size: 14px;
+}
+
+.leaderboard-table tr:first-child td {
+  color: #ff0;
+  font-weight: bold;
+}
+
+.close-modal-btn {
+  padding: 8px 24px;
+  font-size: 14px;
+  background: var(--card-bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.close-modal-btn:hover {
+  background: #444;
 }
