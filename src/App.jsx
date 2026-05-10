@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import GameCanvas from './components/GameCanvas'
 import { INITIAL_SPEED, SPEED_INCREMENT, DIRECTIONS } from './utils/constants'
+import { useSound } from './hooks/useSound'
 import './App.css'
 
 function getHighScore() {
@@ -17,6 +18,7 @@ function App() {
   const [resetKey, setResetKey] = useState(0)
   const levelRef = useRef(1)
   const changeDirRef = useRef(null)
+  const { playEat, playGameOver, playTurn, muted, toggleMute } = useSound()
 
   const speed = Math.max(50, INITIAL_SPEED - (level - 1) * SPEED_INCREMENT)
 
@@ -81,6 +83,9 @@ function App() {
           等级: {level}
         </div>
       </div>
+      <button className="mute-btn" onClick={toggleMute}>
+        {muted ? '🔇' : '🔊'}
+      </button>
       <GameCanvas
         onScore={handleScore}
         onGameOver={() => { setGameOver(true); setPaused(false) }}
@@ -90,6 +95,9 @@ function App() {
         speed={speed}
         resetKey={resetKey}
         onDirectionReady={handleDirectionReady}
+        playEat={playEat}
+        playGameOver={playGameOver}
+        playTurn={playTurn}
       />
       {!gameOver && (
         <button className="pause-btn" onClick={() => setPaused((p) => !p)}>

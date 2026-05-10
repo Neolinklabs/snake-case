@@ -49,6 +49,21 @@
   font-weight: bold;
 }
 
+.mute-btn {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 20px;
+  padding: 4px 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+  line-height: 1;
+}
+
+.mute-btn:hover {
+  background: #444;
+}
+
 canvas {
   border: 2px solid var(--border) !important;
   border-radius: 4px;
