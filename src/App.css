@@ -173,3 +173,142 @@ canvas {
     display: none;
   }
 }
+
+/* Leaderboard */
+.leaderboard {
+  width: 100%;
+  max-width: 360px;
+  text-align: center;
+}
+
+.leaderboard h2 {
+  font-size: 24px;
+  color: var(--accent);
+  margin-bottom: 16px;
+  letter-spacing: 2px;
+}
+
+.leaderboard-empty {
+  color: #666;
+  padding: 24px 0;
+}
+
+.leaderboard-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 16px;
+}
+
+.leaderboard-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+}
+
+.leaderboard-rank {
+  width: 24px;
+  font-weight: bold;
+  color: #888;
+  text-align: center;
+}
+
+.leaderboard-item:nth-child(1) .leaderboard-rank { color: #ffd700; }
+.leaderboard-item:nth-child(2) .leaderboard-rank { color: #c0c0c0; }
+.leaderboard-item:nth-child(3) .leaderboard-rank { color: #cd7f32; }
+
+.leaderboard-name {
+  flex: 1;
+  text-align: left;
+  color: var(--text);
+}
+
+.leaderboard-score {
+  color: var(--accent);
+  font-weight: bold;
+}
+
+.back-btn {
+  padding: 10px 32px;
+  font-size: 16px;
+  background: var(--card-bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.back-btn:hover {
+  background: #333;
+}
+
+/* Bottom actions */
+.bottom-actions {
+  margin-top: 8px;
+}
+
+.leaderboard-btn {
+  padding: 6px 20px;
+  font-size: 14px;
+  background: var(--card-bg);
+  color: #0af;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.leaderboard-btn:hover {
+  background: #333;
+}
+
+/* Save score form */
+.save-score-form {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.name-input {
+  flex: 1;
+  padding: 8px 12px;
+  font-size: 16px;
+  background: var(--card-bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  outline: none;
+}
+
+.name-input:focus {
+  border-color: var(--accent);
+}
+
+.save-btn {
+  padding: 8px 20px;
+  font-size: 16px;
+  background: var(--accent);
+  color: #000;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.save-btn:hover {
+  background: var(--accent-dim);
+}
+
+.restart-btn.secondary {
+  background: transparent;
+  color: #888;
+  border: 1px solid #555;
+  font-size: 14px;
+  padding: 8px 24px;
+}
+
+.restart-btn.secondary:hover {
+  background: #333;
+}
