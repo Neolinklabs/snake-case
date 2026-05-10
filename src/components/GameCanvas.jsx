@@ -8,10 +8,45 @@ const INITIAL_SNAKE = [
   { x: 8, y: 10 },
 ]
 
-function drawGrid(ctx) {
-  ctx.fillStyle = COLORS.background
+const THEME_OVERRIDES = {
+  light: {
+    background: '#e0e0e0',
+    grid: '#ccc',
+    snakeHead: '#2d8a2d',
+    snakeBody: '#3da63d',
+    food: '#d00',
+    overlay: 'rgba(255, 255, 255, 0.7)',
+    overlayLight: 'rgba(255, 255, 255, 0.5)',
+    gameOverText: '#d00',
+    pauseText: '#b8860b',
+    snakeEye: '#2d8a2d',
+    foodHighlight: '#e44',
+  },
+}
+
+function getColors(isDark) {
+  if (isDark) {
+    return {
+      background: COLORS.background,
+      grid: COLORS.grid,
+      snakeHead: COLORS.snakeHead,
+      snakeBody: COLORS.snakeBody,
+      food: COLORS.food,
+      overlay: 'rgba(0, 0, 0, 0.7)',
+      overlayLight: 'rgba(0, 0, 0, 0.5)',
+      gameOverText: '#f00',
+      pauseText: '#ff0',
+      snakeEye: '#0f0',
+      foodHighlight: '#ff4444',
+    }
+  }
+  return THEME_OVERRIDES.light
+}
+
+function drawGrid(ctx, colors) {
+  ctx.fillStyle = colors.background
   ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
-  ctx.strokeStyle = COLORS.grid
+  ctx.strokeStyle = colors.grid
   ctx.lineWidth = 0.5
   for (let i = 0; i <= GRID_SIZE; i++) {
     const pos = i * CELL_SIZE
@@ -26,14 +61,14 @@ function drawGrid(ctx) {
   }
 }
 
-function drawSnake(ctx, snake, flash) {
+function drawSnake(ctx, snake, flash, colors) {
   snake.forEach((segment, index) => {
     const x = segment.x * CELL_SIZE
     const y = segment.y * CELL_SIZE
-    ctx.fillStyle = index === 0 ? COLORS.snakeHead : COLORS.snakeBody
+    ctx.fillStyle = index === 0 ? colors.snakeHead : colors.snakeBody
     ctx.fillRect(x, y, CELL_SIZE, CELL_SIZE)
     if (index === 0) {
-      ctx.fillStyle = flash ? '#fff' : '#0f0'
+      ctx.fillStyle = flash ? '#fff' : colors.snakeEye
       ctx.beginPath()
       ctx.arc(x + CELL_SIZE / 2, y + CELL_SIZE / 2, CELL_SIZE / 3, 0, Math.PI * 2)
       ctx.fill()
@@ -41,30 +76,30 @@ function drawSnake(ctx, snake, flash) {
   })
 }
 
-function drawFood(ctx, food) {
+function drawFood(ctx, food, colors) {
   const x = food.x * CELL_SIZE
   const y = food.y * CELL_SIZE
-  ctx.fillStyle = COLORS.food
+  ctx.fillStyle = colors.food
   ctx.fillRect(x, y, CELL_SIZE, CELL_SIZE)
-  ctx.fillStyle = '#ff4444'
+  ctx.fillStyle = colors.foodHighlight
   ctx.beginPath()
   ctx.arc(x + CELL_SIZE / 2, y + CELL_SIZE / 2, CELL_SIZE / 3, 0, Math.PI * 2)
   ctx.fill()
 }
 
-function drawGameOver(ctx) {
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.7)'
+function drawGameOver(ctx, colors) {
+  ctx.fillStyle = colors.overlay
   ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
-  ctx.fillStyle = '#f00'
+  ctx.fillStyle = colors.gameOverText
   ctx.font = 'bold 36px system-ui'
   ctx.textAlign = 'center'
   ctx.fillText('GAME OVER', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2)
 }
 
-function drawPaused(ctx) {
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.5)'
+function drawPaused(ctx, colors) {
+  ctx.fillStyle = colors.overlayLight
   ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
-  ctx.fillStyle = '#ff0'
+  ctx.fillStyle = colors.pauseText
   ctx.font = 'bold 30px system-ui'
   ctx.textAlign = 'center'
   ctx.fillText('已暂停', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2)
@@ -81,16 +116,16 @@ function spawnFood(snake) {
   return pos
 }
 
-function render(canvas, snake, food, flash) {
+function render(canvas, snake, food, flash, colors) {
   const ctx = canvas.getContext('2d')
-  drawGrid(ctx)
-  drawFood(ctx, food)
-  drawSnake(ctx, snake, flash)
+  drawGrid(ctx, colors)
+  drawFood(ctx, food, colors)
+  drawSnake(ctx, snake, flash, colors)
 }
 
-function renderGameOver(canvas) {
+function renderGameOver(canvas, colors) {
   const ctx = canvas.getContext('2d')
-  drawGameOver(ctx)
+  drawGameOver(ctx, colors)
 }
 
 function isWallCollision(head) {
@@ -101,7 +136,7 @@ function isSelfCollision(head, body) {
   return body.some((s) => s.x === head.x && s.y === head.y)
 }
 
-function GameCanvas({ onScore, onGameOver, onLevelUp, gameOver, paused, speed, resetKey, onDirectionReady }) {
+function GameCanvas({ onScore, onGameOver, onLevelUp, gameOver, paused, speed, resetKey, onDirectionReady, isDark = true }) {
   const canvasRef = useRef(null)
   const snakeRef = useRef(INITIAL_SNAKE)
   const foodRef = useRef(spawnFood(INITIAL_SNAKE))
@@ -109,6 +144,9 @@ function GameCanvas({ onScore, onGameOver, onLevelUp, gameOver, paused, speed, r
   const flashRef = useRef(false)
   const scoreRef = useRef(0)
   const eatenRef = useRef(0)
+  const colorsRef = useRef(getColors(isDark))
+
+  colorsRef.current = getColors(isDark)
 
   const changeDirection = useCallback((newDir) => {
     if (gameOver) return
@@ -153,7 +191,7 @@ function GameCanvas({ onScore, onGameOver, onLevelUp, gameOver, paused, speed, r
     // 碰撞检测
     if (isWallCollision(newHead) || isSelfCollision(newHead, snake)) {
       onGameOver(scoreRef.current)
-      if (canvasRef.current) renderGameOver(canvasRef.current)
+      if (canvasRef.current) renderGameOver(canvasRef.current, colorsRef.current)
       return
     }
 
@@ -173,26 +211,27 @@ function GameCanvas({ onScore, onGameOver, onLevelUp, gameOver, paused, speed, r
       flashRef.current = true
       setTimeout(() => {
         flashRef.current = false
-        if (canvasRef.current) render(canvasRef.current, snakeRef.current, foodRef.current, false)
+        if (canvasRef.current) render(canvasRef.current, snakeRef.current, foodRef.current, false, colorsRef.current)
       }, 100)
     }
 
-    if (canvasRef.current) render(canvasRef.current, newSnake, foodRef.current, flashRef.current)
+    if (canvasRef.current) render(canvasRef.current, newSnake, foodRef.current, flashRef.current, colorsRef.current)
   }, [onScore, onGameOver, onLevelUp, gameOver, paused])
 
   useGameLoop(tick, paused || gameOver, speed)
 
   useEffect(() => {
     if (!canvasRef.current) return
+    const colors = colorsRef.current
     if (gameOver) {
-      renderGameOver(canvasRef.current)
+      renderGameOver(canvasRef.current, colors)
     } else if (paused) {
-      render(canvasRef.current, snakeRef.current, foodRef.current, false)
-      drawPaused(canvasRef.current.getContext('2d'))
+      render(canvasRef.current, snakeRef.current, foodRef.current, false, colors)
+      drawPaused(canvasRef.current.getContext('2d'), colors)
     } else {
-      render(canvasRef.current, snakeRef.current, foodRef.current, false)
+      render(canvasRef.current, snakeRef.current, foodRef.current, false, colors)
     }
-  }, [gameOver, paused])
+  }, [gameOver, paused, isDark])
 
   useEffect(() => {
     if (resetKey === 0) return
@@ -202,7 +241,7 @@ function GameCanvas({ onScore, onGameOver, onLevelUp, gameOver, paused, speed, r
     flashRef.current = false
     scoreRef.current = 0
     eatenRef.current = 0
-    if (canvasRef.current) render(canvasRef.current, INITIAL_SNAKE, foodRef.current, false)
+    if (canvasRef.current) render(canvasRef.current, INITIAL_SNAKE, foodRef.current, false, colorsRef.current)
   }, [resetKey])
 
   return (

@@ -5,6 +5,27 @@
   --accent-dim: #0a0;
   --border: #1e3a1e;
   --card-bg: #1a1a2e;
+  --canvas-bg: #1a1a2e;
+  --canvas-grid: #16213e;
+  --canvas-snake-head: #0f0;
+  --canvas-snake-body: #0a0;
+  --canvas-food: #f00;
+  --overlay-bg: rgba(0, 0, 0, 0.7);
+}
+
+[data-theme="light"] {
+  --bg: #f0f0f0;
+  --text: #222;
+  --accent: #2d8a2d;
+  --accent-dim: #247024;
+  --border: #ccc;
+  --card-bg: #e8e8e8;
+  --canvas-bg: #e0e0e0;
+  --canvas-grid: #ccc;
+  --canvas-snake-head: #2d8a2d;
+  --canvas-snake-body: #3da63d;
+  --canvas-food: #d00;
+  --overlay-bg: rgba(255, 255, 255, 0.7);
 }
 
 * {

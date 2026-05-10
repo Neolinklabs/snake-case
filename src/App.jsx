@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import GameCanvas from './components/GameCanvas'
 import { INITIAL_SPEED, SPEED_INCREMENT, DIRECTIONS } from './utils/constants'
+import { useTheme } from './hooks/useTheme'
 import './App.css'
 
 function getHighScore() {
@@ -17,6 +18,7 @@ function App() {
   const [resetKey, setResetKey] = useState(0)
   const levelRef = useRef(1)
   const changeDirRef = useRef(null)
+  const { isDark, toggleTheme } = useTheme()
 
   const speed = Math.max(50, INITIAL_SPEED - (level - 1) * SPEED_INCREMENT)
 
@@ -70,6 +72,9 @@ function App() {
   return (
     <div className="app">
       <h1>贪吃蛇</h1>
+      <button className="theme-toggle" onClick={toggleTheme} aria-label="切换主题">
+        {isDark ? '☀️' : '🌙'}
+      </button>
       <div className="score-panel">
         <div className={`score ${scoreBump ? 'bump' : ''}`}>
           分数: {score}
@@ -90,6 +95,7 @@ function App() {
         speed={speed}
         resetKey={resetKey}
         onDirectionReady={handleDirectionReady}
+        isDark={isDark}
       />
       {!gameOver && (
         <button className="pause-btn" onClick={() => setPaused((p) => !p)}>
