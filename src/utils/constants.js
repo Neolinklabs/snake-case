@@ -14,10 +14,19 @@ export const INITIAL_SPEED = 150
 export const SPEED_INCREMENT = 10
 export const FOODS_PER_LEVEL = 5
 
+export const BONUS_FRUIT = {
+  SPAWN_CHANCE: 0.3,
+  POINTS: 30,
+  GROWTH: 2,
+  LIFETIME_TICKS: 30,
+}
+
 export const COLORS = {
   background: '#1a1a2e',
   grid: '#16213e',
   snakeHead: '#0f0',
   snakeBody: '#0a0',
   food: '#f00',
+  bonusFruit: '#ffd700',
+  bonusFruitInner: '#ffaa00',
 }
