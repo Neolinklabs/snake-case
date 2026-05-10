@@ -189,14 +189,45 @@ fi
 
 # ---- 8. 推送并创建 PR ----
 echo "--- 创建 PR ---"
-if ! git push -u origin "$BRANCH_NAME" 2>&1; then
-    echo "⚠️ git push 失败（网络问题），变更已在本地提交"
-    gh issue comment "$ISSUE_NUM" --body "✅ 修复已完成并本地提交，但 git push 失败（网络问题）。分支: \`${BRANCH_NAME}\`"
+
+PUSH_SUCCESS=false
+
+# Tier 1 & 2: git push 重试（指数退避）
+PUSH_RETRIES=3
+PUSH_DELAY=5
+for i in $(seq 1 "$PUSH_RETRIES"); do
+    if git push -u origin "$BRANCH_NAME" 2>&1; then
+        PUSH_SUCCESS=true
+        break
+    fi
+    echo "git push 第 ${i}/${PUSH_RETRIES} 次失败"
+    if [ "$i" -lt "$PUSH_RETRIES" ]; then
+        echo "${PUSH_DELAY}s 后重试..."
+        sleep "$PUSH_DELAY"
+        PUSH_DELAY=$((PUSH_DELAY * 2))
+    fi
+done
+
+# Tier 3: 回退到 GitHub API 推送
+if [ "$PUSH_SUCCESS" = false ]; then
+    echo "git push 全部失败，尝试 GitHub API 推送..."
+    BASE_SHA=$(git merge-base HEAD main 2>/dev/null || echo "")
+    if [ -n "$BASE_SHA" ] && bash "${REPO_DIR}/scripts/gh_push.sh" "$BRANCH_NAME" "$BASE_SHA" 2>&1; then
+        PUSH_SUCCESS=true
+        echo "API 推送成功"
+    else
+        echo "GitHub API 推送也失败"
+    fi
+fi
+
+if [ "$PUSH_SUCCESS" = false ]; then
+    echo "⚠️ 所有推送方式失败，变更已在本地提交"
+    gh issue comment "$ISSUE_NUM" --body "✅ 修复已完成并本地提交，但推送失败（网络问题）。分支: \`${BRANCH_NAME}\`"
     gh issue edit "$ISSUE_NUM" \
         --add-label "claude-ready-for-review" \
         --remove-label "claude-testing"
     echo "============================================"
-    echo "Issue #${ISSUE_NUM} 处理完成（本地）"
+    echo "Issue #${ISSUE_NUM} 处理完成（仅本地）"
     echo "============================================"
     exit 0
 fi
