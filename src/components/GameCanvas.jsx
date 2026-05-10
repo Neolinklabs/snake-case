@@ -101,7 +101,7 @@ function isSelfCollision(head, body) {
   return body.some((s) => s.x === head.x && s.y === head.y)
 }
 
-function GameCanvas({ onScore, onGameOver, onLevelUp, gameOver, paused, speed, resetKey, onDirectionReady }) {
+function GameCanvas({ onScore, onGameOver, onLevelUp, gameOver, paused, speed, resetKey, onDirectionReady, playEat, playGameOver, playTurn }) {
   const canvasRef = useRef(null)
   const snakeRef = useRef(INITIAL_SNAKE)
   const foodRef = useRef(spawnFood(INITIAL_SNAKE))
@@ -115,7 +115,8 @@ function GameCanvas({ onScore, onGameOver, onLevelUp, gameOver, paused, speed, r
     const current = directionRef.current
     if (newDir.x + current.x === 0 && newDir.y + current.y === 0) return
     directionRef.current = newDir
-  }, [gameOver])
+    if (playTurn) playTurn()
+  }, [gameOver, playTurn])
 
   useEffect(() => {
     if (onDirectionReady) onDirectionReady(changeDirection)
@@ -134,8 +135,9 @@ function GameCanvas({ onScore, onGameOver, onLevelUp, gameOver, paused, speed, r
     const current = directionRef.current
     if (newDir.x + current.x === 0 && newDir.y + current.y === 0) return
     directionRef.current = newDir
+    if (playTurn) playTurn()
     e.preventDefault()
-  }, [gameOver])
+  }, [gameOver, playTurn])
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown)
@@ -152,6 +154,7 @@ function GameCanvas({ onScore, onGameOver, onLevelUp, gameOver, paused, speed, r
 
     // 碰撞检测
     if (isWallCollision(newHead) || isSelfCollision(newHead, snake)) {
+      if (playGameOver) playGameOver()
       onGameOver(scoreRef.current)
       if (canvasRef.current) renderGameOver(canvasRef.current)
       return
@@ -165,6 +168,7 @@ function GameCanvas({ onScore, onGameOver, onLevelUp, gameOver, paused, speed, r
     snakeRef.current = newSnake
 
     if (ate) {
+      if (playEat) playEat()
       scoreRef.current += 10
       eatenRef.current += 1
       onScore(scoreRef.current)
@@ -178,7 +182,7 @@ function GameCanvas({ onScore, onGameOver, onLevelUp, gameOver, paused, speed, r
     }
 
     if (canvasRef.current) render(canvasRef.current, newSnake, foodRef.current, flashRef.current)
-  }, [onScore, onGameOver, onLevelUp, gameOver, paused])
+  }, [onScore, onGameOver, onLevelUp, gameOver, paused, playEat, playGameOver])
 
   useGameLoop(tick, paused || gameOver, speed)
 
