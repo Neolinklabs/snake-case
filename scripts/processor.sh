@@ -50,13 +50,19 @@ SLUG=$(echo "$ISSUE_TITLE" | tr '[:upper:]' '[:lower:]' \
 if [ -z "$SLUG" ]; then
     SLUG="issue-${ISSUE_NUM}"
 fi
-BRANCH_NAME="${BRANCH_PREFIX}/issue-${ISSUE_NUM}-${SLUG}"
+TIMESTAMP=$(date +%Y%m%d%H%M%S)
+BRANCH_NAME="${BRANCH_PREFIX}/issue-${ISSUE_NUM}-${SLUG}-${TIMESTAMP}"
 
 echo "分支: ${BRANCH_NAME}"
 
-# 确保 main 是最新的
-git fetch origin main
-git checkout origin/main
+# 确保 main 是最新的（网络不通时回退到本地 main）
+git stash --include-untracked 2>/dev/null || true
+if git fetch origin main 2>/dev/null; then
+    git checkout origin/main
+else
+    echo "⚠️ git fetch 失败，使用本地 main"
+    git checkout main
+fi
 git checkout -b "$BRANCH_NAME"
 
 # ---- 3. 构建 Agent Prompt 并写入临时文件 ----
@@ -118,7 +124,7 @@ while [ "$RETRY_COUNT" -lt "$MAX_RETRIES" ]; do
     echo "--- 尝试 ${RETRY_COUNT}/${MAX_RETRIES} ---"
 
     # 通过管道传递 prompt，避免长参数中的特殊字符导致解析出错
-    if cat "$PROMPT_FILE" | claude -p --dangerously-skip-permissions 2>&1; then
+    if cat "$PROMPT_FILE" | claude -p --allowedTools "Bash Edit Read Write" 2>&1; then
         echo "Agent 执行完成"
     else
         echo "Agent 执行出错，继续检查..."
@@ -165,7 +171,7 @@ EOF
         echo "测试失败（尝试 ${RETRY_COUNT}/${MAX_RETRIES}）"
         if [ "$RETRY_COUNT" -lt "$MAX_RETRIES" ]; then
             gh issue comment "$ISSUE_NUM" --body "❌ 测试未通过，Agent 正在重试... (${RETRY_COUNT}/${MAX_RETRIES})"
-            echo "上次的代码变更导致测试失败。请查看测试输出，修复问题，确保所有测试通过。" | claude -p --dangerously-skip-permissions 2>&1 || true
+            echo "上次的代码变更导致测试失败。请查看测试输出，修复问题，确保所有测试通过。" | claude -p --allowedTools "Bash Edit Read Write" 2>&1 || true
         fi
     fi
 done
@@ -183,7 +189,17 @@ fi
 
 # ---- 8. 推送并创建 PR ----
 echo "--- 创建 PR ---"
-git push -u origin "$BRANCH_NAME"
+if ! git push -u origin "$BRANCH_NAME" 2>&1; then
+    echo "⚠️ git push 失败（网络问题），变更已在本地提交"
+    gh issue comment "$ISSUE_NUM" --body "✅ 修复已完成并本地提交，但 git push 失败（网络问题）。分支: \`${BRANCH_NAME}\`"
+    gh issue edit "$ISSUE_NUM" \
+        --add-label "claude-ready-for-review" \
+        --remove-label "claude-testing"
+    echo "============================================"
+    echo "Issue #${ISSUE_NUM} 处理完成（本地）"
+    echo "============================================"
+    exit 0
+fi
 
 PR_BODY=$(cat <<EOF
 ## Summary
@@ -211,13 +227,23 @@ PR_URL=$(gh pr create \
 
 echo "PR 已创建: ${PR_URL}"
 
-# 更新 Issue 状态
-gh issue edit "$ISSUE_NUM" \
-    --add-label "claude-ready-for-review" \
-    --remove-label "claude-testing"
-gh issue comment "$ISSUE_NUM" --body "✅ 修复已完成，PR 已创建: ${PR_URL}
+# ---- 9. 自动合并 PR ----
+echo "--- 自动合并 PR ---"
+if gh pr merge "$PR_URL" --squash --delete-branch 2>&1; then
+    echo "PR 已自动合并"
+    gh issue edit "$ISSUE_NUM" \
+        --add-label "claude-ready-for-review" \
+        --remove-label "claude-testing"
+    gh issue comment "$ISSUE_NUM" --body "✅ 修复已完成并自动合并: ${PR_URL}"
+else
+    echo "自动合并失败，转为等待人工 Review"
+    gh issue edit "$ISSUE_NUM" \
+        --add-label "claude-ready-for-review" \
+        --remove-label "claude-testing"
+    gh issue comment "$ISSUE_NUM" --body "⚠️ 自动合并失败，PR 已创建: ${PR_URL}
 
-请 Review 后合并。"
+请手动 Review 后合并。"
+fi
 
 echo "============================================"
 echo "Issue #${ISSUE_NUM} 处理完成"
