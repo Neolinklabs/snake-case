@@ -211,13 +211,23 @@ PR_URL=$(gh pr create \
 
 echo "PR 已创建: ${PR_URL}"
 
-# 更新 Issue 状态
-gh issue edit "$ISSUE_NUM" \
-    --add-label "claude-ready-for-review" \
-    --remove-label "claude-testing"
-gh issue comment "$ISSUE_NUM" --body "✅ 修复已完成，PR 已创建: ${PR_URL}
+# ---- 9. 自动合并 PR ----
+echo "--- 自动合并 PR ---"
+if gh pr merge "$PR_URL" --squash --delete-branch 2>&1; then
+    echo "PR 已自动合并"
+    gh issue edit "$ISSUE_NUM" \
+        --add-label "claude-ready-for-review" \
+        --remove-label "claude-testing"
+    gh issue comment "$ISSUE_NUM" --body "✅ 修复已完成并自动合并: ${PR_URL}"
+else
+    echo "自动合并失败，转为等待人工 Review"
+    gh issue edit "$ISSUE_NUM" \
+        --add-label "claude-ready-for-review" \
+        --remove-label "claude-testing"
+    gh issue comment "$ISSUE_NUM" --body "⚠️ 自动合并失败，PR 已创建: ${PR_URL}
 
-请 Review 后合并。"
+请手动 Review 后合并。"
+fi
 
 echo "============================================"
 echo "Issue #${ISSUE_NUM} 处理完成"

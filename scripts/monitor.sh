@@ -28,6 +28,17 @@ mkdir -p "$LOG_DIR"
 
 cd "$REPO_DIR"
 
+# 确保自动化标签存在（幂等，已存在不会报错）
+for LABEL_ARGS in \
+  "claude-pending 0E8A16 等待 Claude Agent 处理" \
+  "claude-in-progress FBCA04 Claude Agent 处理中" \
+  "claude-testing 1D76DB Claude Agent 正在跑测试" \
+  "claude-failed E11D48 Claude Agent 处理失败" \
+  "claude-skipped 6E7781 Claude Agent 跳过处理" \
+  "claude-ready-for-review 8B5CF6 Claude Agent 已完成，等待人工 Review"; do
+  gh label create $LABEL_ARGS 2>/dev/null || true
+done
+
 echo "============================================"
 echo "Issue Monitor 启动"
 echo "仓库: $(git remote get-url origin)"
