@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState, useCallback } from 'react'
-import { CANVAS_WIDTH, CANVAS_HEIGHT, CELL_SIZE, GRID_SIZE, COLORS, DIRECTIONS } from '../utils/constants'
+import { CANVAS_WIDTH, CANVAS_HEIGHT, CELL_SIZE, GRID_SIZE, COLORS, DIRECTIONS, BONUS_FRUIT } from '../utils/constants'
 import { useGameLoop } from '../hooks/useGameLoop'
 
 const INITIAL_SNAKE = [
@@ -52,6 +52,21 @@ function drawFood(ctx, food) {
   ctx.fill()
 }
 
+function drawBonusFruit(ctx, bonus) {
+  const x = bonus.x * CELL_SIZE
+  const y = bonus.y * CELL_SIZE
+  // Pulsing glow effect
+  const pulse = Math.sin(Date.now() / 200) * 0.15 + 0.85
+  ctx.globalAlpha = pulse
+  ctx.fillStyle = COLORS.bonusFruit
+  ctx.fillRect(x, y, CELL_SIZE, CELL_SIZE)
+  ctx.fillStyle = COLORS.bonusFruitInner
+  ctx.beginPath()
+  ctx.arc(x + CELL_SIZE / 2, y + CELL_SIZE / 2, CELL_SIZE / 3, 0, Math.PI * 2)
+  ctx.fill()
+  ctx.globalAlpha = 1
+}
+
 function drawGameOver(ctx) {
   ctx.fillStyle = 'rgba(0, 0, 0, 0.7)'
   ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
@@ -81,10 +96,25 @@ function spawnFood(snake) {
   return pos
 }
 
-function render(canvas, snake, food, flash) {
+function spawnBonusFruit(snake, food) {
+  let pos
+  do {
+    pos = {
+      x: Math.floor(Math.random() * GRID_SIZE),
+      y: Math.floor(Math.random() * GRID_SIZE),
+    }
+  } while (
+    snake.some((s) => s.x === pos.x && s.y === pos.y) ||
+    (food && pos.x === food.x && pos.y === food.y)
+  )
+  return { ...pos, ticksLeft: BONUS_FRUIT.LIFETIME_TICKS }
+}
+
+function render(canvas, snake, food, flash, bonusFruit) {
   const ctx = canvas.getContext('2d')
   drawGrid(ctx)
   drawFood(ctx, food)
+  if (bonusFruit) drawBonusFruit(ctx, bonusFruit)
   drawSnake(ctx, snake, flash)
 }
 
@@ -109,6 +139,7 @@ function GameCanvas({ onScore, onGameOver, onLevelUp, gameOver, paused, speed, r
   const flashRef = useRef(false)
   const scoreRef = useRef(0)
   const eatenRef = useRef(0)
+  const bonusRef = useRef(null)
 
   const changeDirection = useCallback((newDir) => {
     if (gameOver) return
@@ -161,9 +192,19 @@ function GameCanvas({ onScore, onGameOver, onLevelUp, gameOver, paused, speed, r
     }
 
     const ate = newHead.x === food.x && newHead.y === food.y
-    const newSnake = ate
-      ? [newHead, ...snake]
-      : [newHead, ...snake.slice(0, -1)]
+    const bonus = bonusRef.current
+    const ateBonus = bonus && newHead.x === bonus.x && newHead.y === bonus.y
+
+    let newSnake
+    if (ateBonus) {
+      // 奖励果实让蛇增长 GROWTH 段
+      const tail = snake.slice(-(BONUS_FRUIT.GROWTH - 1))
+      newSnake = [newHead, ...snake, ...tail]
+    } else if (ate) {
+      newSnake = [newHead, ...snake]
+    } else {
+      newSnake = [newHead, ...snake.slice(0, -1)]
+    }
 
     snakeRef.current = newSnake
 
@@ -174,14 +215,38 @@ function GameCanvas({ onScore, onGameOver, onLevelUp, gameOver, paused, speed, r
       onScore(scoreRef.current)
       if (eatenRef.current % 5 === 0) onLevelUp()
       foodRef.current = spawnFood(newSnake)
+      // 随机生成奖励果实
+      if (!bonusRef.current && Math.random() < BONUS_FRUIT.SPAWN_CHANCE) {
+        bonusRef.current = spawnBonusFruit(newSnake, foodRef.current)
+      }
       flashRef.current = true
       setTimeout(() => {
         flashRef.current = false
-        if (canvasRef.current) render(canvasRef.current, snakeRef.current, foodRef.current, false)
+        if (canvasRef.current) render(canvasRef.current, snakeRef.current, foodRef.current, false, bonusRef.current)
       }, 100)
     }
 
-    if (canvasRef.current) render(canvasRef.current, newSnake, foodRef.current, flashRef.current)
+    if (ateBonus) {
+      if (playEat) playEat()
+      scoreRef.current += BONUS_FRUIT.POINTS
+      onScore(scoreRef.current)
+      bonusRef.current = null
+      flashRef.current = true
+      setTimeout(() => {
+        flashRef.current = false
+        if (canvasRef.current) render(canvasRef.current, snakeRef.current, foodRef.current, false, bonusRef.current)
+      }, 100)
+    }
+
+    // 奖励果实倒计时
+    if (bonusRef.current) {
+      bonusRef.current.ticksLeft -= 1
+      if (bonusRef.current.ticksLeft <= 0) {
+        bonusRef.current = null
+      }
+    }
+
+    if (canvasRef.current) render(canvasRef.current, newSnake, foodRef.current, flashRef.current, bonusRef.current)
   }, [onScore, onGameOver, onLevelUp, gameOver, paused, playEat, playGameOver])
 
   useGameLoop(tick, paused || gameOver, speed)
@@ -191,10 +256,10 @@ function GameCanvas({ onScore, onGameOver, onLevelUp, gameOver, paused, speed, r
     if (gameOver) {
       renderGameOver(canvasRef.current)
     } else if (paused) {
-      render(canvasRef.current, snakeRef.current, foodRef.current, false)
+      render(canvasRef.current, snakeRef.current, foodRef.current, false, bonusRef.current)
       drawPaused(canvasRef.current.getContext('2d'))
     } else {
-      render(canvasRef.current, snakeRef.current, foodRef.current, false)
+      render(canvasRef.current, snakeRef.current, foodRef.current, false, bonusRef.current)
     }
   }, [gameOver, paused])
 
@@ -206,7 +271,8 @@ function GameCanvas({ onScore, onGameOver, onLevelUp, gameOver, paused, speed, r
     flashRef.current = false
     scoreRef.current = 0
     eatenRef.current = 0
-    if (canvasRef.current) render(canvasRef.current, INITIAL_SNAKE, foodRef.current, false)
+    bonusRef.current = null
+    if (canvasRef.current) render(canvasRef.current, INITIAL_SNAKE, foodRef.current, false, null)
   }, [resetKey])
 
   return (
