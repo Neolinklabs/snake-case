@@ -15,6 +15,8 @@ HTMLCanvasElement.prototype.getContext = function () {
     stroke: () => {},
     fill: () => {},
     arc: () => {},
+    ellipse: () => {},
+    quadraticCurveTo: () => {},
     fillText: () => {},
   }
 }

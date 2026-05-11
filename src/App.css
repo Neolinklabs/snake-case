@@ -49,6 +49,17 @@
   font-weight: bold;
 }
 
+.fruit-indicator {
+  font-size: 13px;
+  font-weight: bold;
+  animation: fruitPop 0.3s ease;
+}
+
+@keyframes fruitPop {
+  0% { transform: scale(0.5); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
 .mute-btn {
   background: var(--card-bg);
   border: 1px solid var(--border);

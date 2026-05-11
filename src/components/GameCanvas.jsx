@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState, useCallback } from 'react'
-import { CANVAS_WIDTH, CANVAS_HEIGHT, CELL_SIZE, GRID_SIZE, COLORS, DIRECTIONS } from '../utils/constants'
+import { CANVAS_WIDTH, CANVAS_HEIGHT, CELL_SIZE, GRID_SIZE, COLORS, DIRECTIONS, FRUIT_TYPES, CORNER_SIZE } from '../utils/constants'
 import { useGameLoop } from '../hooks/useGameLoop'
 
 const INITIAL_SNAKE = [
@@ -41,15 +41,102 @@ function drawSnake(ctx, snake, flash) {
   })
 }
 
-function drawFood(ctx, food) {
+function drawFruit(ctx, food) {
   const x = food.x * CELL_SIZE
   const y = food.y * CELL_SIZE
-  ctx.fillStyle = COLORS.food
-  ctx.fillRect(x, y, CELL_SIZE, CELL_SIZE)
-  ctx.fillStyle = '#ff4444'
-  ctx.beginPath()
-  ctx.arc(x + CELL_SIZE / 2, y + CELL_SIZE / 2, CELL_SIZE / 3, 0, Math.PI * 2)
-  ctx.fill()
+  const type = food.type
+  const cx = x + CELL_SIZE / 2
+  const cy = y + CELL_SIZE / 2
+
+  switch (type.id) {
+    case 'apple': {
+      ctx.fillStyle = type.color
+      ctx.beginPath()
+      ctx.arc(cx, cy + 1, CELL_SIZE / 2.5, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.fillStyle = '#4a2c0a'
+      ctx.fillRect(cx - 1, y + 1, 2, 4)
+      ctx.fillStyle = '#22aa22'
+      ctx.beginPath()
+      ctx.ellipse(cx + 3, y + 3, 3, 1.5, 0.3, 0, Math.PI * 2)
+      ctx.fill()
+      break
+    }
+    case 'banana': {
+      ctx.strokeStyle = type.color
+      ctx.lineWidth = 4
+      ctx.lineCap = 'round'
+      ctx.beginPath()
+      ctx.arc(cx, cy + 5, 7, Math.PI * 1.2, Math.PI * 1.8)
+      ctx.stroke()
+      ctx.fillStyle = type.accentColor
+      ctx.beginPath()
+      ctx.arc(cx - 2, cy + 5, 1.5, 0, Math.PI * 2)
+      ctx.fill()
+      break
+    }
+    case 'grape': {
+      const offsets = [[-3, -2], [3, -2], [0, 2], [-3, 3], [3, 3]]
+      ctx.fillStyle = type.color
+      offsets.forEach(([dx, dy]) => {
+        ctx.beginPath()
+        ctx.arc(cx + dx, cy + dy, 3, 0, Math.PI * 2)
+        ctx.fill()
+      })
+      ctx.fillStyle = '#4a2c0a'
+      ctx.fillRect(cx - 0.5, y + 1, 1, 4)
+      break
+    }
+    case 'orange': {
+      ctx.fillStyle = type.color
+      ctx.beginPath()
+      ctx.arc(cx, cy, CELL_SIZE / 2.5, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.fillStyle = '#22aa22'
+      ctx.beginPath()
+      ctx.arc(cx, y + 3, 2, 0, Math.PI * 2)
+      ctx.fill()
+      break
+    }
+    case 'watermelon': {
+      ctx.fillStyle = type.color
+      ctx.beginPath()
+      ctx.arc(cx, cy, CELL_SIZE / 2.3, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.fillStyle = type.accentColor
+      ctx.beginPath()
+      ctx.arc(cx, cy, CELL_SIZE / 3.2, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.fillStyle = '#222'
+      const seeds = [[-2, -1], [2, -1], [0, 2]]
+      seeds.forEach(([dx, dy]) => {
+        ctx.beginPath()
+        ctx.ellipse(cx + dx, cy + dy, 1, 1.5, 0, 0, Math.PI * 2)
+        ctx.fill()
+      })
+      break
+    }
+    case 'cherry': {
+      ctx.fillStyle = type.color
+      ctx.beginPath()
+      ctx.arc(cx - 3, cy + 2, 3.5, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.beginPath()
+      ctx.arc(cx + 3, cy + 2, 3.5, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.strokeStyle = '#4a2c0a'
+      ctx.lineWidth = 1.5
+      ctx.beginPath()
+      ctx.moveTo(cx - 3, cy - 1)
+      ctx.quadraticCurveTo(cx, y, cx + 3, cy - 1)
+      ctx.stroke()
+      break
+    }
+    default: {
+      ctx.fillStyle = COLORS.food
+      ctx.fillRect(x, y, CELL_SIZE, CELL_SIZE)
+    }
+  }
 }
 
 function drawGameOver(ctx) {
@@ -70,6 +157,26 @@ function drawPaused(ctx) {
   ctx.fillText('已暂停', CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2)
 }
 
+function isCornerPosition(x, y) {
+  const g = GRID_SIZE - 1
+  return (
+    (x < CORNER_SIZE && y < CORNER_SIZE) ||
+    (x > g - CORNER_SIZE && y < CORNER_SIZE) ||
+    (x < CORNER_SIZE && y > g - CORNER_SIZE) ||
+    (x > g - CORNER_SIZE && y > g - CORNER_SIZE)
+  )
+}
+
+function pickFruitType() {
+  const totalWeight = FRUIT_TYPES.reduce((sum, f) => sum + f.weight, 0)
+  let r = Math.random() * totalWeight
+  for (const fruit of FRUIT_TYPES) {
+    r -= fruit.weight
+    if (r <= 0) return fruit
+  }
+  return FRUIT_TYPES[0]
+}
+
 function spawnFood(snake) {
   let pos
   do {
@@ -77,14 +184,17 @@ function spawnFood(snake) {
       x: Math.floor(Math.random() * GRID_SIZE),
       y: Math.floor(Math.random() * GRID_SIZE),
     }
-  } while (snake.some((s) => s.x === pos.x && s.y === pos.y))
-  return pos
+  } while (
+    snake.some((s) => s.x === pos.x && s.y === pos.y) ||
+    isCornerPosition(pos.x, pos.y)
+  )
+  return { ...pos, type: pickFruitType() }
 }
 
 function render(canvas, snake, food, flash) {
   const ctx = canvas.getContext('2d')
   drawGrid(ctx)
-  drawFood(ctx, food)
+  drawFruit(ctx, food)
   drawSnake(ctx, snake, flash)
 }
 
@@ -101,7 +211,7 @@ function isSelfCollision(head, body) {
   return body.some((s) => s.x === head.x && s.y === head.y)
 }
 
-function GameCanvas({ onScore, onGameOver, onLevelUp, gameOver, paused, speed, resetKey, onDirectionReady, playEat, playGameOver, playTurn }) {
+function GameCanvas({ onScore, onGameOver, onLevelUp, gameOver, paused, speed, resetKey, onDirectionReady, playEat, playGameOver, playTurn, onFruitEaten }) {
   const canvasRef = useRef(null)
   const snakeRef = useRef(INITIAL_SNAKE)
   const foodRef = useRef(spawnFood(INITIAL_SNAKE))
@@ -109,6 +219,7 @@ function GameCanvas({ onScore, onGameOver, onLevelUp, gameOver, paused, speed, r
   const flashRef = useRef(false)
   const scoreRef = useRef(0)
   const eatenRef = useRef(0)
+  const speedModAccumRef = useRef(0)
 
   const changeDirection = useCallback((newDir) => {
     if (gameOver) return
@@ -169,9 +280,12 @@ function GameCanvas({ onScore, onGameOver, onLevelUp, gameOver, paused, speed, r
 
     if (ate) {
       if (playEat) playEat()
-      scoreRef.current += 10
+      const fruit = foodRef.current
+      scoreRef.current += fruit.type.points
       eatenRef.current += 1
+      speedModAccumRef.current += fruit.type.speedMod
       onScore(scoreRef.current)
+      if (onFruitEaten) onFruitEaten(fruit.type)
       if (eatenRef.current % 5 === 0) onLevelUp()
       foodRef.current = spawnFood(newSnake)
       flashRef.current = true
@@ -184,7 +298,8 @@ function GameCanvas({ onScore, onGameOver, onLevelUp, gameOver, paused, speed, r
     if (canvasRef.current) render(canvasRef.current, newSnake, foodRef.current, flashRef.current)
   }, [onScore, onGameOver, onLevelUp, gameOver, paused, playEat, playGameOver])
 
-  useGameLoop(tick, paused || gameOver, speed)
+  const effectiveSpeed = Math.max(30, Math.min(300, speed + speedModAccumRef.current))
+  useGameLoop(tick, paused || gameOver, effectiveSpeed)
 
   useEffect(() => {
     if (!canvasRef.current) return
@@ -206,6 +321,7 @@ function GameCanvas({ onScore, onGameOver, onLevelUp, gameOver, paused, speed, r
     flashRef.current = false
     scoreRef.current = 0
     eatenRef.current = 0
+    speedModAccumRef.current = 0
     if (canvasRef.current) render(canvasRef.current, INITIAL_SNAKE, foodRef.current, false)
   }, [resetKey])
 

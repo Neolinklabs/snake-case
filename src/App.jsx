@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import GameCanvas from './components/GameCanvas'
 import { INITIAL_SPEED, SPEED_INCREMENT, DIRECTIONS } from './utils/constants'
+import { FRUIT_TYPES } from './utils/constants'
 import { useSound } from './hooks/useSound'
 import { getLeaderboard, addToLeaderboard, isTop10 } from './utils/storage'
 import './App.css'
@@ -24,6 +25,7 @@ function App() {
   const [playerName, setPlayerName] = useState('')
   const [showNameInput, setShowNameInput] = useState(false)
   const scoreRef = useRef(0)
+  const [lastFruit, setLastFruit] = useState(null)
 
   const speed = Math.max(50, INITIAL_SPEED - (level - 1) * SPEED_INCREMENT)
 
@@ -68,6 +70,7 @@ function App() {
     setResetKey((k) => k + 1)
     setShowNameInput(false)
     setPlayerName('')
+    setLastFruit(null)
   }
 
   const handleSubmitName = () => {
@@ -99,6 +102,13 @@ function App() {
         <div className="level">
           等级: {level}
         </div>
+        {lastFruit && (
+          <div className="fruit-indicator" style={{ color: lastFruit.color }}>
+            {lastFruit.name} +{lastFruit.points}分
+            {lastFruit.speedMod > 0 && ' (减速)'}
+            {lastFruit.speedMod < 0 && ' (加速)'}
+          </div>
+        )}
       </div>
       <button className="mute-btn" onClick={toggleMute}>
         {muted ? '🔇' : '🔊'}
@@ -124,6 +134,7 @@ function App() {
         playEat={playEat}
         playGameOver={playGameOver}
         playTurn={playTurn}
+        onFruitEaten={(fruitType) => setLastFruit(fruitType)}
       />
       {!gameOver && (
         <button className="pause-btn" onClick={() => setPaused((p) => !p)}>
